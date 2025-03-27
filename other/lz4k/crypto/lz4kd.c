@@ -10,6 +10,8 @@
 #include <linux/crypto.h>
 #include <linux/vmalloc.h>
 #include <linux/lz4kd.h>
+#include <crypto/algapi.h>
+#include <crypto/internal/scompress.h>
 
 
 struct lz4kd_ctx {
