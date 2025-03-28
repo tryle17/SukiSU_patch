@@ -29,6 +29,7 @@ diff -u a/lib/Kconfig b/lib/Kconfig
  config ZSTD_COMPRESS
  	select XXHASH
  	tristate
+ 	
 diff -u a/lib/Makefile b/lib/Makefile
 --- a/lib/Makefile
 +++ b/lib/Makefile
@@ -102,9 +103,9 @@ diff -u a/crypto/Makefile b/crypto/Makefile
  obj-$(CONFIG_CRYPTO_DRBG) += drbg.o
  obj-$(CONFIG_CRYPTO_JITTERENTROPY) += jitterentropy_rng.o
 
-diff -u a/devices/block/zram/Kconfig b/devices/block/zram/Kconfig
---- a/devices/block/zram/Kconfig
-+++ b/devices/block/zram/Kconfig
+diff -u a/drivers/block/zram/Kconfig b/drivers/block/zram/Kconfig
+--- a/drivers/block/zram/Kconfig
++++ b/drivers/block/zram/Kconfig
 @@ -1,11 +1,11 @@
  # SPDX-License-Identifier: GPL-2.0
  config ZRAM
@@ -220,21 +221,4 @@ diff -u a/drivers/block/zram/zcomp.c b/drivers/block/zram/zcomp.c
  #if IS_ENABLED(CONFIG_CRYPTO_ZSTD)
  	"zstd",
  #endif
-diff -u a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
---- a/drivers/block/zram/zram_drv.c
-+++ b/drivers/block/zram/zram_drv.c
-@@ -39,13 +39,13 @@
- 
- static DEFINE_IDR(zram_index_idr);
- /* idr index must be protected */
- static DEFINE_MUTEX(zram_index_mutex);
- 
- static int zram_major;
--static const char *default_compressor = "lzo-rle";
-+static const char *default_compressor = CONFIG_ZRAM_DEF_COMP;
- 
- /* Module params (documentation at end) */
- static unsigned int num_devices = 1;
- /*
-  * Pages that compress to sizes equals or greater than this are stored
-  * uncompressed in memory.
+
