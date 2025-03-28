@@ -2,7 +2,7 @@
 config ZRAM
 	tristate "Compressed RAM block device support"
 	depends on BLOCK && SYSFS && MMU
-	depends on CRYPTO_LZO || CRYPTO_ZSTD || CRYPTO_LZ4 || CRYPTO_LZ4HC || CRYPTO_842 || CRYPTO_LZ4K || CRYPTO_LZ4KD
+	depends on CRYPTO_LZO || CRYPTO_ZSTD || CRYPTO_LZ4 || CRYPTO_LZ4HC || CRYPTO_842 || CRYPTO_LZ4K || CRYPTO_LZ4KD || CRYPTO_DEFLATE
 	select ZSMALLOC
 	help
 	  Creates virtual block devices called /dev/zramX (X = 0, 1, ...).
@@ -52,6 +52,10 @@ config ZRAM_DEF_COMP_LZ4KD
 	bool "lz4kd"
 	depends on CRYPTO_LZ4KD
 
+config ZRAM_DEF_COMP_DEFLATE
+	bool "deflate"
+	depends on CRYPTO_DEFLATE
+
 endchoice
 
 config ZRAM_DEF_COMP
@@ -64,6 +68,7 @@ config ZRAM_DEF_COMP
 	default "842" if ZRAM_DEF_COMP_842
 	default "lz4k" if ZRAM_DEF_COMP_LZ4K
 	default "lz4kd" if ZRAM_DEF_COMP_LZ4KD
+	default "deflate" if ZRAM_DEF_COMP_DEFLATE
 
 config ZRAM_WRITEBACK
        bool "Write back incompressible or idle page to backing device"
