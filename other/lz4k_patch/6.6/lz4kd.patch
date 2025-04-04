@@ -223,7 +223,10 @@ diff -u a/drivers/block/zram/zcomp.c b/drivers/block/zram/zcomp.c
 diff -u a/kernel/module/main.c b/kernel/module/main.c
 --- a/kernel/module/main.c
 +++ b/kernel/module/main.c
-@@ -2385,13 +2385,23 @@ int __weak module_frob_arch_sections(Elf_Ehdr *hdr,
+@@ -2382,27 +2382,46 @@
+ {
+ 	return 0;
+ }
  
  /* module_blacklist is a comma-separated list of module names */
  static char *module_blacklist;
@@ -243,7 +246,7 @@ diff -u a/kernel/module/main.c b/kernel/module/main.c
  {
  	const char *p;
  	size_t len;
-+        int i;
++	int i;
  
  	if (!module_blacklist)
 -		return false;
@@ -251,7 +254,8 @@ diff -u a/kernel/module/main.c b/kernel/module/main.c
  
  	for (p = module_blacklist; *p; p += len) {
  		len = strcspn(p, ",");
-@@ -2400,6 +2410,12 @@ static bool blacklisted(const char *module_name)
+ 		if (strlen(module_name) == len && !memcmp(module_name, p, len))
+ 			return true;
  		if (p[len] == ',')
  			len++;
  	}
@@ -264,7 +268,13 @@ diff -u a/kernel/module/main.c b/kernel/module/main.c
  	return false;
  }
  core_param(module_blacklist, module_blacklist, charp, 0400);
-@@ -2848,10 +2864,6 @@ static int early_mod_check(struct load_info *info, int flags)
+ 
+ static struct module *layout_and_allocate(struct load_info *info, int flags)
+ {
+@@ -2845,16 +2864,12 @@
+ 	int err;
+ 
+ 	/*
  	 * Now that we know we have the correct module name, check
  	 * if it's blacklisted.
  	 */
@@ -275,15 +285,24 @@ diff -u a/kernel/module/main.c b/kernel/module/main.c
  
  	err = rewrite_section_headers(info, flags);
  	if (err)
-@@ -2913,6 +2925,11 @@ static int load_module(struct load_info *info, const char __user *uargs,
+ 		return err;
+ 
+ 	/* Check module struct version now, before we try to use module. */
+@@ -2909,12 +2924,17 @@
  	if (err)
  		goto free_copy;
  
-+	if (blacklisted(info->name)) {
+ 	err = early_mod_check(info, flags);
+ 	if (err)
+ 		goto free_copy;
++    
++    if (blacklisted(info->name)) {
 +		pr_err("Module %s is blacklisted\n", info->name);
 +		goto free_copy;
 +	}
-+
+ 
  	/* Figure out module layout, and allocate all the memory. */
  	mod = layout_and_allocate(info, flags);
  	if (IS_ERR(mod)) {
+ 		err = PTR_ERR(mod);
+ 		goto free_copy;
