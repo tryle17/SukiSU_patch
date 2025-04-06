@@ -124,14 +124,13 @@ diff -u a/drivers/block/zram/zram_drv.c b/drivers/block/zram/zram_drv.c
 diff -u a/drivers/block/zram/Kconfig b/drivers/block/zram/Kconfig
 --- a/drivers/block/zram/Kconfig
 +++ b/drivers/block/zram/Kconfig
-@@ -1,21 +1,77 @@
+@@ -1,21 +1,76 @@
  # SPDX-License-Identifier: GPL-2.0
  config ZRAM
  	tristate "Compressed RAM block device support"
  	depends on BLOCK && SYSFS && ZSMALLOC && CRYPTO
 -	select CRYPTO_LZO
 +	depends on CRYPTO_LZO || CRYPTO_ZSTD || CRYPTO_LZ4 || CRYPTO_LZ4HC || CRYPTO_842 || CRYPTO_LZ4K || CRYPTO_LZ4KD || CRYPTO_DEFLATE
-+	select ZSMALLOC
  	help
  	  Creates virtual block devices called /dev/zramX (X = 0, 1, ...).
  	  Pages written to these disks are compressed and stored in memory
