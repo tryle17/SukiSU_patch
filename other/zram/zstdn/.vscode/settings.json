@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "zstd_ldm_geartab.h": "c",
+        "zstd_lib.h": "c",
+        "zstd_internal.h": "c",
+        "zstd_deps.h": "c"
+    }
+}
