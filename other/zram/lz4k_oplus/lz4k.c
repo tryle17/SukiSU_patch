@@ -2,6 +2,7 @@
 #include <linux/module.h>
 #include <linux/crypto.h>
 #include <linux/vmalloc.h>
+#include <crypto/algapi.h>
 #include "lz4k.h"
 
 
