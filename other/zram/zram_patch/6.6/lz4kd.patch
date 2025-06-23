@@ -1,59 +1,8 @@
-diff -u a/lib/Kconfig b/lib/Kconfig
---- a/lib/Kconfig
-+++ b/lib/Kconfig
-@@ -336,12 +336,24 @@
- 
- config LZ4HC_COMPRESS
- 	tristate
- 
- config LZ4_DECOMPRESS
- 	tristate
-+	
-+config LZ4K_COMPRESS
-+	tristate
-+
-+config LZ4K_DECOMPRESS
-+	tristate
-+
-+config LZ4KD_COMPRESS
-+	tristate
-+
-+config LZ4KD_DECOMPRESS
-+ 	tristate
- 
- config ZSTD_COMMON
- 	select XXHASH
- 	tristate
- 
- config ZSTD_COMPRESS
-
-diff -u a/lib/Makefile b/lib/Makefile
---- a/lib/Makefile
-+++ b/lib/Makefile
-@@ -187,12 +187,16 @@
- obj-$(CONFIG_BCH) += bch.o
- obj-$(CONFIG_LZO_COMPRESS) += lzo/
- obj-$(CONFIG_LZO_DECOMPRESS) += lzo/
- obj-$(CONFIG_LZ4_COMPRESS) += lz4/
- obj-$(CONFIG_LZ4HC_COMPRESS) += lz4/
- obj-$(CONFIG_LZ4_DECOMPRESS) += lz4/
-+obj-$(CONFIG_LZ4K_COMPRESS) += lz4k/
-+obj-$(CONFIG_LZ4K_DECOMPRESS) += lz4k/
-+obj-$(CONFIG_LZ4KD_COMPRESS) += lz4kd/
-+obj-$(CONFIG_LZ4KD_DECOMPRESS) += lz4kd/
- obj-$(CONFIG_ZSTD_COMPRESS) += zstd/
- obj-$(CONFIG_ZSTD_DECOMPRESS) += zstd/
- obj-$(CONFIG_XZ_DEC) += xz/
- obj-$(CONFIG_RAID6_PQ) += raid6/
- 
- lib-$(CONFIG_DECOMPRESS_GZIP) += decompress_inflate.o
-diff -u a/crypto/Kconfig b/crypto/Kconfig
+diff --git a/crypto/Kconfig b/crypto/Kconfig
+index 3889e9f6d..95a9963ca 100644
 --- a/crypto/Kconfig
 +++ b/crypto/Kconfig
-@@ -1260,12 +1260,28 @@
- 	select LZ4_DECOMPRESS
- 	help
- 	  LZ4 compression algorithm
+@@ -1267,6 +1267,22 @@ config CRYPTO_LZ4
  
  	  See https://github.com/lz4/lz4 for further information.
  
@@ -76,17 +25,11 @@ diff -u a/crypto/Kconfig b/crypto/Kconfig
  config CRYPTO_LZ4HC
  	tristate "LZ4HC"
  	select CRYPTO_ALGAPI
- 	select CRYPTO_ACOMP2
- 	select LZ4HC_COMPRESS
- 	select LZ4_DECOMPRESS
-
-diff -u a/crypto/Makefile b/crypto/Makefile
+diff --git a/crypto/Makefile b/crypto/Makefile
+index 9e04a6aad..e5bafb58a 100644
 --- a/crypto/Makefile
 +++ b/crypto/Makefile
-@@ -151,13 +151,15 @@
- obj-$(CONFIG_CRYPTO_CRC32C) += crc32c_generic.o
- obj-$(CONFIG_CRYPTO_CRC32) += crc32_generic.o
- obj-$(CONFIG_CRYPTO_CRCT10DIF) += crct10dif_common.o crct10dif_generic.o
+@@ -161,7 +161,9 @@ obj-$(CONFIG_CRYPTO_CRC64_ROCKSOFT) += crc64_rocksoft_generic.o
  obj-$(CONFIG_CRYPTO_AUTHENC) += authenc.o authencesn.o
  obj-$(CONFIG_CRYPTO_LZO) += lzo.o lzo-rle.o
  obj-$(CONFIG_CRYPTO_LZ4) += lz4.o
@@ -96,15 +39,11 @@ diff -u a/crypto/Makefile b/crypto/Makefile
  obj-$(CONFIG_CRYPTO_XXHASH) += xxhash_generic.o
  obj-$(CONFIG_CRYPTO_842) += 842.o
  obj-$(CONFIG_CRYPTO_RNG2) += rng.o
- obj-$(CONFIG_CRYPTO_ANSI_CPRNG) += ansi_cprng.o
- obj-$(CONFIG_CRYPTO_DRBG) += drbg.o
- obj-$(CONFIG_CRYPTO_JITTERENTROPY) += jitterentropy_rng.o
-
-diff -u a/drivers/block/zram/Kconfig b/drivers/block/zram/Kconfig
+diff --git a/drivers/block/zram/Kconfig b/drivers/block/zram/Kconfig
+index 7021f3cc7..aea97cea3 100644
 --- a/drivers/block/zram/Kconfig
 +++ b/drivers/block/zram/Kconfig
-@@ -1,11 +1,11 @@
- # SPDX-License-Identifier: GPL-2.0
+@@ -2,7 +2,7 @@
  config ZRAM
  	tristate "Compressed RAM block device support"
  	depends on BLOCK && SYSFS && MMU
@@ -113,13 +52,7 @@ diff -u a/drivers/block/zram/Kconfig b/drivers/block/zram/Kconfig
  	select ZSMALLOC
  	help
  	  Creates virtual block devices called /dev/zramX (X = 0, 1, ...).
- 	  Pages written to these disks are compressed and stored in memory
- 	  itself. These disks allow very fast I/O and compression provides
- 	  good amounts of memory savings.
-@@ -14,49 +14,64 @@
- 	  disks and maybe many more.
- 
- 	  See Documentation/admin-guide/blockdev/zram.rst for more information.
+@@ -17,43 +17,58 @@ config ZRAM
  
  choice
  	prompt "Default zram compressor"
@@ -189,17 +122,11 @@ diff -u a/drivers/block/zram/Kconfig b/drivers/block/zram/Kconfig
  
  config ZRAM_WRITEBACK
         bool "Write back incompressible or idle page to backing device"
-        depends on ZRAM
-        help
- 	 With incompressible page, there is no memory saving to keep it
-
-diff -u a/drivers/block/zram/zcomp.c b/drivers/block/zram/zcomp.c
+diff --git a/drivers/block/zram/zcomp.c b/drivers/block/zram/zcomp.c
+index 8237b08c4..eb8817933 100644
 --- a/drivers/block/zram/zcomp.c
 +++ b/drivers/block/zram/zcomp.c
-@@ -22,12 +22,21 @@
- #if IS_ENABLED(CONFIG_CRYPTO_LZ4)
- 	"lz4",
- #endif
+@@ -26,6 +26,15 @@ static const char * const backends[] = {
  #if IS_ENABLED(CONFIG_CRYPTO_LZ4HC)
  	"lz4hc",
  #endif
@@ -215,16 +142,11 @@ diff -u a/drivers/block/zram/zcomp.c b/drivers/block/zram/zcomp.c
  #if IS_ENABLED(CONFIG_CRYPTO_842)
  	"842",
  #endif
- #if IS_ENABLED(CONFIG_CRYPTO_ZSTD)
- 	"zstd",
- #endif
-
-
 diff --git a/kernel/module/main.c b/kernel/module/main.c
-index 48afaf8b0..d4361be35 100644
+index ea1b4e116..c56924d3e 100644
 --- a/kernel/module/main.c
 +++ b/kernel/module/main.c
-@@ -2379,13 +2379,29 @@ int __weak module_frob_arch_sections(Elf_Ehdr *hdr,
+@@ -2385,13 +2385,29 @@ int __weak module_frob_arch_sections(Elf_Ehdr *hdr,
  
  /* module_blacklist is a comma-separated list of module names */
  static char *module_blacklist;
@@ -255,7 +177,7 @@ index 48afaf8b0..d4361be35 100644
  
  	for (p = module_blacklist; *p; p += len) {
  		len = strcspn(p, ",");
-@@ -2394,6 +2410,12 @@ static bool blacklisted(const char *module_name)
+@@ -2400,6 +2416,12 @@ static bool blacklisted(const char *module_name)
  		if (p[len] == ',')
  			len++;
  	}
@@ -268,7 +190,7 @@ index 48afaf8b0..d4361be35 100644
  	return false;
  }
  core_param(module_blacklist, module_blacklist, charp, 0400);
-@@ -2840,10 +2862,6 @@ static int early_mod_check(struct load_info *info, int flags)
+@@ -2848,10 +2870,6 @@ static int early_mod_check(struct load_info *info, int flags)
  	 * Now that we know we have the correct module name, check
  	 * if it's blacklisted.
  	 */
@@ -279,7 +201,7 @@ index 48afaf8b0..d4361be35 100644
  
  	err = rewrite_section_headers(info, flags);
  	if (err)
-@@ -2904,6 +2922,11 @@ static int load_module(struct load_info *info, const char __user *uargs,
+@@ -2912,6 +2930,11 @@ static int load_module(struct load_info *info, const char __user *uargs,
  	err = early_mod_check(info, flags);
  	if (err)
  		goto free_copy;
@@ -291,3 +213,41 @@ index 48afaf8b0..d4361be35 100644
  
  	/* Figure out module layout, and allocate all the memory. */
  	mod = layout_and_allocate(info, flags);
+diff --git a/lib/Kconfig b/lib/Kconfig
+index ee365b740..ad440a439 100644
+--- a/lib/Kconfig
++++ b/lib/Kconfig
+@@ -341,6 +341,18 @@ config LZ4HC_COMPRESS
+ 
+ config LZ4_DECOMPRESS
+ 	tristate
++	
++config LZ4K_COMPRESS
++	tristate
++
++config LZ4K_DECOMPRESS
++	tristate
++
++config LZ4KD_COMPRESS
++	tristate
++
++config LZ4KD_DECOMPRESS
++ 	tristate
+ 
+ config ZSTD_COMMON
+ 	select XXHASH
+diff --git a/lib/Makefile b/lib/Makefile
+index 740109b6e..f43b2057f 100644
+--- a/lib/Makefile
++++ b/lib/Makefile
+@@ -201,6 +201,10 @@ obj-$(CONFIG_LZO_DECOMPRESS) += lzo/
+ obj-$(CONFIG_LZ4_COMPRESS) += lz4/
+ obj-$(CONFIG_LZ4HC_COMPRESS) += lz4/
+ obj-$(CONFIG_LZ4_DECOMPRESS) += lz4/
++obj-$(CONFIG_LZ4K_COMPRESS) += lz4k/
++obj-$(CONFIG_LZ4K_DECOMPRESS) += lz4k/
++obj-$(CONFIG_LZ4KD_COMPRESS) += lz4kd/
++obj-$(CONFIG_LZ4KD_DECOMPRESS) += lz4kd/
+ obj-$(CONFIG_ZSTD_COMPRESS) += zstd/
+ obj-$(CONFIG_ZSTD_DECOMPRESS) += zstd/
+ obj-$(CONFIG_XZ_DEC) += xz/
