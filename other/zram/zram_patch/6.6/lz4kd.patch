@@ -236,7 +236,7 @@ diff -u a/kernel/module/main.c b/kernel/module/main.c
 +#endif
 +#if IS_BUILTIN(CONFIG_ZRAM)
 +    "zram",
-+   "oplus_bsp_hybridswap_zram",
++    "oplus_bsp_hybridswap_zram",
 +    "oplus_bsp_zram_opt",
 +#endif
 +#if IS_BUILTIN(CONFIG_ZSMALLOC)
